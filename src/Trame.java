@@ -1,4 +1,6 @@
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * TrameType représente les types de trames, chacun avec un code byte 
@@ -140,13 +142,14 @@ class Trame {
      * @return la trame sous forme de tableau de bytes.
      */
     public byte[] trame_to_tab() {
-        byte[] trame = new byte[6 + donne.length];
+        byte[] donne_stuffed = bitstuffing(donne);
+        byte[] trame = new byte[6 + donne_stuffed.length];
 
         trame[0] = FLAG; //ajoute le flag de début
         trame[1] = type.getCode(); 
         trame[2] = num; 
 
-        System.arraycopy(donne, 0, trame, 3, donne.length);
+        System.arraycopy(donne_stuffed, 0, trame, 3, donne_stuffed.length);
 
         trame[3 + donne.length] = (byte) ((crc >> 8) & 0xFF); //les 8 bits de poid fort du crc
         trame[4 + donne.length] = (byte) (crc & 0xFF); //les 8 bits de poid faible du crc
@@ -169,10 +172,89 @@ class Trame {
         if (type == null) return null; //Si le type n'existe pas on retourne null
 
         byte num = trameBytes[2];
-        //On copie de 3 (pour enlever le flag, le type et le num) jusqu'à length - 3 (pour enlever le crc et le flag)
-        byte[] data = Arrays.copyOfRange(trameBytes, 3, trameBytes.length - 3);
+        //On destuffe les données sans le crc et le flag
+        byte[] donne_destuffed = bitdestuffing(Arrays.copyOfRange(trameBytes, 3, trameBytes.length - 3));
 
-        return new Trame(type, num, data);
+
+        return new Trame(type, num, donne_destuffed);
+    }
+
+    /**
+     * Si il y a 5 bits a 1 d'affilés on insere après un bit a 0 du bit sutffing
+     * @param donne le tableau de bytes sur lequel appliqué le bit stuffing
+     * @return les données avec le bit stuffing d'appliquer
+     */
+    private static byte[] bitstuffing(byte[] donne){
+        List<Byte> donne_stuffed = new ArrayList<>();
+        int compteur1 = 0;
+
+        for (byte b : donne) { //Itere bytes
+            for (int i = 7; i >= 0; i--) { //Itere bits 
+                if ((b & (1 << i)) != 0) { //Si le bit est a 1
+                    compteur1++;
+                    donne_stuffed.add((byte) 1);
+                    if (compteur1 == 5) { //Si 5 bits a 1 d'affilé
+                        donne_stuffed.add((byte) 0); //Insere 0
+                        compteur1 = 0;
+                    }
+                } else {
+                    compteur1 = 0;
+                    donne_stuffed.add((byte) 0);
+                }
+            }
+        }
+        return convertBitListToByteArray(donne_stuffed);
+    }
+
+    /**
+     * Si il y a 5 bits a 1 d'affilés on enleve le 0 du bit stuffing
+     * @param donne le tableau de bytes sur lequel enlevé le bit stuffing
+     * @return les données sans le bit stuffing
+     */
+    private static byte[] bitdestuffing(byte[] donne){
+        List<Byte> donne_destuffed = new ArrayList<>();
+        int compteur1 = 0;
+
+        for (byte b : donne) { //Itere bytes
+            for (int i = 7; i >= 0; i--) { //Itere bits 
+                if ((b & (1 << i)) != 0) { //Si le bit est a 1
+                    compteur1++;
+                    donne_destuffed.add((byte) 1);
+                    if (compteur1 == 5) { //Si 5 bits a 1 d'affilé
+                        i--; //On skip le 0 du bit stuffing
+                        compteur1 = 0;
+                    }
+                } else {
+                    compteur1 = 0;
+                    donne_destuffed.add((byte) 0);
+                }
+            }
+        }
+        return convertBitListToByteArray(donne_destuffed);
+    }
+
+    /**
+     * Si il y a 5 bits a 1 d'affilés on enleve le 0 du bit stuffing
+     * @param bitList une liste de byte ou chaque byte est considéré comme un bit
+     * @return la liste convertit en byte Array
+     */
+    private static byte[] convertBitListToByteArray(List<Byte> bitList) {
+        //On arrondit au supérieur pour le nombre de bytes
+        byte[] byteArray = new byte[(int) Math.ceil((double) bitList.size() / 8)]; 
+        int byteIndex = 0, bitIndex = 7;
+    
+        for (byte bit : bitList) { //Itere chaque bit (stocker dans byte ici)
+            if (bit == 1) {
+                byteArray[byteIndex] |= (1 << bitIndex); //On ajuste le bit correspondant
+            }
+            bitIndex--;
+            if (bitIndex < 0) { 
+                bitIndex = 7;
+                byteIndex++; //On avance au prochain byte
+            }
+        }
+    
+        return byteArray;
     }
 
     /**
@@ -213,6 +295,10 @@ class Trame {
 
     @Override
     public String toString() {
-        return "Type: " + this.type + " " + "Num: " + this.num + "\n";
+        return "  Type      : " + getType() +
+               "  Numéro    : " + getNum() +
+               "  Données   : " + new String(getDonne()) +
+               "  CRC       : " + getCrc() +
+               "-----------------------------------";
     }
 }
