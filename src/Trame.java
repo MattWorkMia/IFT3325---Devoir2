@@ -295,10 +295,10 @@ class Trame {
 
     @Override
     public String toString() {
-        return "  Type      : " + getType() +
-               "  Numéro    : " + getNum() +
-               "  Données   : " + new String(getDonne()) +
-               "  CRC       : " + getCrc() +
-               "-----------------------------------";
+        return "Type      : " + getType() +
+               "\nNuméro    : " + getNum() +
+               "\nDonnées   : " + new String(getDonne()) +
+               "\nCRC       : " + getCrc() +
+               "\n-----------------------------------" + "\n";
     }
 }

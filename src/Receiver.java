@@ -32,7 +32,7 @@ public class Receiver {
         byte numTrameAttendu = 0; //On initialise a 0 le numero de la premiere trame attendu
 
         while (true) {
-            Trame trame = hdlc.receiveTrame();
+            Trame trame = hdlc.recoitTrame();
 
             if (trame == null) continue;
 
@@ -48,7 +48,8 @@ public class Receiver {
                 System.out.println("ACK envoyé pour la trame : " + trame.getNum());
                 //On incremente le numero de trame attendu (modulo 8 pour limiter a 3 bits la numerotation)
                 numTrameAttendu = (byte) ((numTrameAttendu + 1) % 8);
-            } else {
+            } 
+            else {
                 System.out.println("Trame invalide, envoi de REJ : " + trame.getNum());
                 Trame rejTrame = new Trame(TrameType.R, trame.getNum(), new byte[0]); 
                 hdlc.envoieTrame(rejTrame); //Envoie de REJ
@@ -65,6 +66,9 @@ public class Receiver {
      * @return true si la trame est valide, false sinon.
      */
     private boolean checkTrame(Trame trame, byte numTrameAttendu) {
+        if(trame.getNum() != numTrameAttendu) System.out.println(trame.getNum() + " " + numTrameAttendu);
         return trame.getCrc() == trame.calculerCRC() && trame.getNum() == numTrameAttendu;
     }
+
+    
 }

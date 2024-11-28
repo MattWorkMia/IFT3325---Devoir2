@@ -41,24 +41,8 @@ public class Sender {
         System.out.println("Connexion établie avec le port " + port + " de " + machineName + " !");
     }
   
-    /**
-     * Méthode pour lire un fichier.
-     * @param fileName le fichier à lire passé en paramètre dans la ligne de commande
-     * @throws IOException
-     */
-    public static void readFile(String fileName) throws IOException {
-        
-        // Ouvrir le fichier pour lecture
-        BufferedReader reader = new BufferedReader(new FileReader(fileName));
-        
-        // Lire les données tant qu'il en reste dans le fichier
-        String line;
-        while ((line = reader.readLine()) != null) {
-
-        }
-        
-        reader.close();
-           public static void createFrame(String fileName) throws IOException {
+    
+    public void createFrame(String fileName) throws IOException {
         
         // Ouvrir le fichier pour lecture
         BufferedReader reader = new BufferedReader(new FileReader(fileName));
@@ -79,24 +63,25 @@ public class Sender {
         hdlc.fermeConnection();
     }
     
-    public void sendFrame(byte[] data) throws IOException {
+    private void sendFrame(byte[] data) throws IOException {
         int dataLength = data.length;
         int position = 0;
 
         while (position < dataLength) {
-            int chunkSize = Math.min(MAX_FRAME_SIZE, dataLength - position);
+            if(frameNum == 8) frameNum = 0;
+            int chunkSize = Math.min(FRAME_SIZE_MAX, dataLength - position);
             byte[] chunkData = new byte[chunkSize];
             System.arraycopy(data, position, chunkData, 0, chunkSize);
 
             // Crée une trame d'information et envoie la trame
-            Trame trame = new Trame(TrameType.I, numTrame++, chunkData);
+            Trame trame = new Trame(TrameType.I, frameNum++, chunkData);
             hdlc.envoieTrame(trame);
 
             // Attente de l'ACK ou REJ
             long startTime = System.currentTimeMillis();
             boolean ackReceived = false;
             while (System.currentTimeMillis() - startTime < TIMEOUT) {
-                Trame ack = hdlc.receiveFrame();
+                Trame ack = hdlc.recoitTrame();
                 if (ack != null && ack.getType() == TrameType.A && ack.getNum() == trame.getNum()) {
                     ackReceived = true;
                     break;
@@ -115,32 +100,5 @@ public class Sender {
             position += chunkSize;
         }
     }
-
-        /**
-         * main pour mes tests Sender et affichage, à déplacer ou supprimer
-         */
-        public static void main(String[] args) throws IOException {
-        
-        if (args.length != 4) {
-            System.out.println("Vous devez entrer 4 paramètres dans la ligne de commande.");
-            System.out.println("Format attendu : java Sender <Nom_Machine> <Numero_Port> <Nom_fichier> <Valeur_GBN>");
-        }
-        
-        /*
-         * Récupération des paramètres passés dans la ligne de commande
-         */
-        String machineName = args[0];
-        int port = Integer.parseInt(args[1]);
-        String fileName = args[2];
-        int gbnValue = Integer.parseInt(args[3]);
-          
-        /*
-         * Appel avec les paramètre saisi en ligne de commande
-         */
-        readFile(fileName);
-        System.out.println("Nom de la machine : " + machineName);
-        System.out.println("Num du port : " + port);
-        System.out.println("Nom du fichier : " + fileName);
-        System.out.println("Valeur du bit GBN : " + gbnValue);
-    }
 }
+      

@@ -41,7 +41,7 @@ public class HDLC {
      * Lit les données sur l'input stream et les transforme en une trame.
      * @return la trame reçue ou null si aucun byte n'est lu
      */
-    public Trame receiveTrame() throws IOException {
+    public Trame recoitTrame() throws IOException {
         byte[] buffer = new byte[1024];
         int bytesLus = inputStream.read(buffer);
         if (bytesLus == -1) return null; //Aucun byte lu on retourne null
