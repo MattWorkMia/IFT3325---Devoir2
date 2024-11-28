@@ -61,7 +61,7 @@ public class Sender {
     }
 
         /**
-         * Classe main pour mes tests Sender et affichage.
+         * main pour mes tests Sender et affichage, à déplacer ou supprimer
          */
         public static void main(String[] args) throws IOException {
         
