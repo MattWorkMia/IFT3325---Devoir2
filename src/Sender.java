@@ -1,6 +1,10 @@
 import java.io.*;
 import java.net.*;
 
+/**
+ * Sender lit le fichier source, crée des trames et envoie ces trames à Receiver sur le socket.
+ * Sender reçoit les ACK et REJ de Receiver et ré-envoie les données au besoin.
+ */
 public class Sender {
 
     /**
