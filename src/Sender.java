@@ -58,5 +58,33 @@ public class Sender {
         }
         
         reader.close();    
-    }   
+    }
+
+        /**
+         * Classe main pour mes tests Sender et affichage.
+         */
+        public static void main(String[] args) throws IOException {
+        
+        if (args.length != 4) {
+            System.out.println("Vous devez entrer 4 paramètres dans la ligne de commande.");
+            System.out.println("Format attendu : java Sender <Nom_Machine> <Numero_Port> <Nom_fichier> <Valeur_GBN>");
+        }
+        
+        /*
+         * Récupération des paramètres passés dans la ligne de commande
+         */
+        String machineName = args[0];
+        int port = Integer.parseInt(args[1]);
+        String fileName = args[2];
+        int gbnValue = Integer.parseInt(args[3]);
+          
+        /*
+         * Appel avec les paramètre saisi en ligne de commande
+         */
+        readFile(fileName);
+        System.out.println("Nom de la machine : " + machineName);
+        System.out.println("Num du port : " + port);
+        System.out.println("Nom du fichier : " + fileName);
+        System.out.println("Valeur du bit GBN : " + gbnValue);
+    }
 }
